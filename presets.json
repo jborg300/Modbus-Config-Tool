@@ -1,0 +1,38 @@
+{
+    "presets": [
+        {
+            "name": "Read - Example Template",
+            "type": "read",
+            "register": "99"
+        },
+        {
+            "name": "Read Multiple - Example Template",
+            "type": "read_multiple",
+            "start_register": 100,
+            "read_count": 8
+        },
+        {
+            "name": "Write - Example Template",
+            "type": "write",
+            "register": 100,
+            "value": 4
+        },
+        {
+            "name": "Test Preset 1",
+            "type": "read_multiple",
+            "start_register": "444",
+            "read_count": 10
+        },
+        {
+            "name": "Test Preset 2",
+            "type": "write",
+            "register": 555,
+            "value": 99
+        },
+        {
+            "name": "Test Preset 3",
+            "type": "read",
+            "register": 680
+        }
+    ]
+}
