@@ -1,3 +1,4 @@
+from gzip import READ
 import logging
 import minimalmodbus
 import serial.tools.list_ports
