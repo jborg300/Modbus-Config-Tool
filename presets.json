@@ -1,15 +1,70 @@
 {
-    "presets": [
+    "read_presets": [
         {
             "name": "Read - Example Template",
             "type": "read",
             "register": "99"
         },
         {
+            "name": "Read - Test 1",
+            "type": "read",
+            "register": "55"
+        },
+        {
+            "name": "Read - Test 2",
+            "type": "read",
+            "register": "93"
+        },
+        {
+            "name": "Read - Test 3 - Sensor Data",
+            "type": "read",
+            "register": "201"
+        }
+    ],
+    "read_multiple_presets": [
+        {
             "name": "Read Multiple - Example Template",
             "type": "read_multiple",
             "start_register": 100,
             "read_count": 8
+        },
+        {
+            "name": "Test Preset 1 - RM",
+            "type": "read_multiple",
+            "start_register": "500",
+            "read_count": 6
+        },
+        {
+            "name": "Test Preset 2 - RM",
+            "type": "read_multiple",
+            "start_register": "301",
+            "read_count": 4
+        },
+        {
+            "name": "Read Sensor Config Regs",
+            "type": "read_multiple",
+            "start_register": "201",
+            "read_count": 3
+        }
+    ],
+    "write_presets": [
+        {
+            "name": "Test Preset 2",
+            "type": "write",
+            "register": 555,
+            "value": 99
+        },
+        {
+            "name": "Test Preset 1",
+            "type": "write",
+            "register": 22,
+            "value": 99
+        },
+        {
+            "name": "Test Preset 3",
+            "type": "write",
+            "register": 555,
+            "value": 99
         },
         {
             "name": "Write - Example Template",
@@ -18,21 +73,21 @@
             "value": 4
         },
         {
-            "name": "Test Preset 1",
-            "type": "read_multiple",
-            "start_register": "444",
-            "read_count": 10
-        },
-        {
-            "name": "Test Preset 2",
+            "name": "Test Write 10 ",
             "type": "write",
-            "register": 555,
-            "value": 99
-        },
-        {
-            "name": "Test Preset 3",
-            "type": "read",
-            "register": 680
+            "register": 900,
+            "value": 3
         }
+    ],
+    "saved_devices": [
+        {
+            "preset_name": "PWM Converter PN: 123456",
+            "device_id": 1,
+            "baud_rate": 19200,
+            "extra1": 99,
+            "extra2": 22
+        }
+
     ]
+    
 }
