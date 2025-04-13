@@ -13,11 +13,10 @@ BYTESIZE = 8
 BAUD_RATES = [2400, 4800, 9600, 19200, 38400, 115200] # Commonly used Modbus RTU BAUD RATES (This is the data transfer rate in BITS per second.)
 
 # Menu Option Lists
-MENU_OPTIONS = ["Read Register(s)", "Write Register", "Manage Presets", "Modbus Connection Settings", "Retry/Select  COM Device", "" "Exit"]
+MENU_OPTIONS = ["Read Register(s)", "Write Register", "Manage Presets", "Modbus Connection Settings", "Retry/Select  COM Device", "Exit"]
 READ_REG_OPTIONS = ["Read Single Register", "Read Contiguous Registers", "Select from Read Presets", "Select from Read-Multiple Presets", "Main Menu"]
 WRITE_REG_OPTIONS = ["Write Register", "Select from Write Presets", "Main Menu"]
 PRESET_MENU_OPTIONS = ["Add new Read Preset", "Add new Read-Multiple Preset", "Add new Write Preset", "Modify Read Presets", "Modify Read-Multiple Presets", "Modify Write Presets", "Main Menu"]
-PRESET_CHOICES = ["Read Register", "Read Multiple Contiguous Registers", "Write Register", "Main Menu"]
 MB_CONNECTION_SETTINGS = ["Change Baud Rate", "Change Device ID", "Main Menu"]
 
 current_dir = os.path.dirname(os.path.abspath(__file__))  # Get the parent directory of the current file.
@@ -46,82 +45,70 @@ def main():
     device_ID = 0
     status_color = GREEN
     
+    # Main Menu Loop
     while True:
-        #clear_console()
-        if not selected_port and selected_port is None and not bypass_com:
-            bypass = str(input("No COM Devices found. Bypass and run anyway? (y/n):  ").lower())
-            
-            if bypass == "y".lower():
-                selected_port = None
-                bypass_com = True
-                logging.info(f"{RED}No COM device connected. Bypassed...{RESET}")   
+        selected_port, bypass_com, status_color, baud_rate, device_ID = handle_port_init(selected_port, bypass_com, status_color, baud_rate, device_ID)
+        print_menu_options(MENU_OPTIONS, base=1, label=f"\n{BOLD}{UNDERLINE}{status_color}Main Menu Options - {selected_port} - Baud: {baud_rate} - ID: {device_ID}{RESET}")
+        exit_option: int = len(MENU_OPTIONS)
+        try:
+            selection = get_int_input("Option: ")
+            print(f"Selection: {MENU_OPTIONS[selection - 1]}")
 
-            else:
-                logging.info("Exiting...")
-                return
-        
-        if bypass_com and selected_port:
-            bypass_com = False # Reset bypass_com to False - This handles 
-            
-        if selected_port or bypass_com:
-            if bypass_com:
-                status_color = RED
-                
-            if not bypass_com and (baud_rate == 0 or device_ID == 0):
-                baud_rate = baud_input()
-                device_ID = device_id_input()
-                #clear_console() # Clear Console Lines after selecting initial Baud Rate and Device ID
-                status_color = GREEN # Set the Status Color as GREEN while CommsOk
+            match selection:
+                case 1:
+                    read_registers(selected_port, baud_rate, device_ID)
+                case 2:
+                    write_register(selected_port, baud_rate, device_ID)
+                case 3:
+                    presetRegConfig_handler()
+                case 4:
+                    baud_rate, device_ID = modify_mb_connection(baud_rate, device_ID)
+
+                case 5:
+                    com_devices, menu_items = list_serial_ports()
+                    selected_port = select_com_device(com_devices, menu_items)
+                    clear_console()
                     
-            print_menu_options(MENU_OPTIONS, base=1, label=f"\n{BOLD}{UNDERLINE}{status_color}Main Menu Options - {selected_port} - Baud: {baud_rate} - ID: {device_ID}{RESET}")
-            mmlen: int = len(MENU_OPTIONS)
-            try:
-                selection = get_int_input("Option: ")
-                print(f"Selection: {MENU_OPTIONS[selection - 1]}\n")
-
-                match selection:
-                    case 1:
-                        read_registers(selected_port, baud_rate, device_ID)
-                    case 2:
-                        write_register(selected_port, baud_rate, device_ID)
-                    case 3:
-                        presetRegConfig_handler()
-                        
-                    case 4:
-                        while True:
-                            print_menu_options(
-                                MB_CONNECTION_SETTINGS,
-                                base=1,
-                                label=f"{BOLD}{UNDERLINE}{GREEN}Modbus Connection Settings: - Baud: {baud_rate} - ID: {device_ID}{RESET}",
-                            )
-                            option = get_int_input("Option: ")
-                            if option == 1:
-                                baud_rate = baud_input()
-                                
-                            elif option == 2:
-                                device_ID = device_id_input()
-                                
-                            elif option == len(MB_CONNECTION_SETTINGS):
-                                break
-                            
-                            else:
-                                print("Invalid Input\n")
-
-                    case 5:
-                        com_devices, menu_items = list_serial_ports()
-                        
-                        selected_port = select_com_device(com_devices, menu_items)
-
-                    case mmlen:
-                        print("Exit App...")
-                        break
-                    
-            except IndexError as e:
-                print(f"Invalid input. - {e}\n")
+                case exit_option:  # noqa: F841
+                    print("Exit App...")
+                    break
                 
-            except Exception as e:
-                print(e)
+        except IndexError as e:
+            print(f"{RED}Invalid input. - {e}\n{RESET}")
+            
+        except Exception as e:
+            print(f"{RED}{e}\n{RESET}")
+
+
+def handle_port_init(selected_port: list | None, bypass_com:bool, status_color, baud_rate, device_ID):
+    if not selected_port and not bypass_com:
+        bypass = str(input("No COM Devices found. Bypass and run anyway? (y/n):  ").lower())
+    
+        if bypass == "y".lower():
+            selected_port = None
+            bypass_com = True
+            logging.info(f"{RED}No COM device connected. Bypassed...{RESET}")   
+
+        else:
+            logging.info("Exiting...")
+            return selected_port, bypass_com, status_color, baud_rate, device_ID
+
+    if bypass_com and selected_port:
+        status_color = GREEN
+        bypass_com = False # Reset bypass_com - COM device is now detected and the application was running in 'bypass mode'
         
+        
+    if selected_port or bypass_com:
+        if bypass_com:
+            status_color = RED
+                
+        if not bypass_com and (baud_rate == 0 or device_ID == 0):
+            baud_rate = baud_input()
+            device_ID = device_id_input()
+            clear_console()
+            status_color = GREEN # Set the Status Color as GREEN while CommsOk
+    
+    return selected_port, bypass_com, status_color, baud_rate, device_ID
 
 def clear_console():
     """Clear the terminal screen for Windows, macOS, and Linux."""
@@ -170,7 +157,7 @@ def select_com_device(com_devices: list, display_items: list = []):
                     logging.info(f"'Selected {selected_port}' as COM device.\n")
                     break
                 else:
-                    print("Invalid Input")
+                    print(f"{RED}Invalid Input.{RESET}")
 
 
     return selected_port
@@ -241,15 +228,15 @@ def read_registers(com_port, baud_rate: int, device_ID: int):
             print(f"Selection: {READ_REG_OPTIONS[read_type - 1]}\n")
             if read_type in range(1, len(READ_REG_OPTIONS)):
 
-                # Load Necessary JSON Read Presets for seleciton / use 
+                # Load Necessary JSON Read/Write Preset data
                 if read_type in (3, 4):
                     json_preset_data = load_json(PRESETS_FILEPATH)
                     
                     if read_type == 3:  
-                        print(f"{GREEN}{BOLD}{UNDERLINE}Read Presets:{RESET}")
+                        print(f"{MENU_FMTCLR}Read Presets:{RESET}")
                         preset_choice = get_read_presets(json_preset_data) #Collect a list of presets for 'Read or Read Multiple'
                     elif read_type == 4:
-                        print(f"{GREEN}{BOLD}{UNDERLINE}Read-Multiple Presets:{RESET}")
+                        print(f"{MENU_FMTCLR}Read-Multiple Presets:{RESET}")
                         preset_choice = get_read_mult_presets(json_preset_data)
 
                     for i, preset in enumerate(preset_choice, start=1):
@@ -417,11 +404,13 @@ def get_write_presets(json_write_data):
 def get_int_input(prompt: str):
     while True:
         user_input = input(prompt)
+        
         try:
             if user_input is not None:
                 value = int(user_input)
-
+                
                 return value
+            
         except ValueError:
             print("Invalid input. Please enter an integer.")
 
@@ -432,22 +421,20 @@ def presetRegConfig_handler():
     readMult_presets: list[dict] = get_read_mult_presets(json_data)
     write_presets: list[dict] = get_write_presets(json_data)
     
+    # Add / Modify Preset Type selection loop
     while True:
         try:
-            print_menu_options(PRESET_MENU_OPTIONS, base=1, label=f"{MENU_FMTCLR}Preset Options:{RESET}")  # Display initial Menu Options for Preset Management
+            print_menu_options(PRESET_MENU_OPTIONS, base=1, label=f"\n{MENU_FMTCLR}Preset Options:{RESET}")  # Display initial Menu Options for Preset Management
             preset_option = get_int_input("Option: ")
-            if preset_option in range(1, len(PRESET_MENU_OPTIONS)+1):
+            
+            if preset_option in range(1, len(PRESET_MENU_OPTIONS)):
                 print(f"Selection: {PRESET_MENU_OPTIONS[preset_option-1]}\n")
-        
-            if preset_option not in range(1, len(PRESET_MENU_OPTIONS)+1):
-                print("Invalid Input.\n")
             
             # Create a Preset using the Read(1) / Read Multiple(2) / Write(3) templates
             if preset_option in range(1, 4):
                 new_preset = {} # Create a new empty preset dict
-                new_preset["name"] = input("Enter preset name: ") # Specify a name for the preset
-                print_menu_options(PRESET_CHOICES, base=1, label=f"{MENU_FMTCLR}Choose Preset Type:{RESET}") # Display the preset types 
-                new_preset_type = preset_option
+                new_preset["name"] = str(input("Enter preset name: ")) # Specify a name for the preset
+                new_preset_type = preset_option # Use the preset option since each menu item is for its respective 'type'
                 
                 # Handle creation of 'read' PRESET data
                 if new_preset_type == 1:
@@ -494,29 +481,34 @@ def presetRegConfig_handler():
                     presets_list = write_presets
                     preset_key = "write_presets"
                 
+                # Presets selection loop
                 while True:
-                
-                    print_menu_options(presets_list, base=1, label=f"{MENU_FMTCLR}Saved {preset_key} - Modify:{RESET}")  
-                    print(f"{len(presets_list) + 1}: Main Menu")  # Print the option to go back to the main menu
-                    mm_selection = len(presets_list) + 1           # Set the value for the dynamic Main Menu option.
+                    print_menu_options(presets_list, base=1, label=f"\n{MENU_FMTCLR}Saved {preset_key} - Modify:{RESET}")  
+                    print(f"{len(presets_list) + 1}: Back to Preset Options menu")  # Print the option to go back
+                    back_to_presets_option = len(presets_list) + 1  # Back  Cancel menu options value
                     preset_selection = get_int_input("Option: ")
                     
-                    if preset_selection in range(1, len(presets_list)):
+                    if preset_selection in range(1, len(presets_list) + 1):
                         print(f"Selection: {presets_list[preset_selection-1]}\n")
+                        
+                        # Preset Item to modify selection loop
                         while True:
-
                             preset = presets_list[preset_selection - 1]
                             keys = list(preset.keys())
-                            print(f"{MENU_FMTCLR}Modify/Remove - '{preset['name']}'{RESET}")
+                            del_option = len(preset.keys()) + 1 # Delete menu options value
+                            back_option = len(preset.keys()) + 2 # Back / Cancel menu options value
+                            
+                            print(f"\n{MENU_FMTCLR}Modify/Remove - '{preset['name']}'{RESET}")
                             
                             # Print the Menu Options for editing the Preset
                             for idx, (k, v) in enumerate(preset.items(), start = 1):
                                 print(f"{idx}: {k}: {v}")
                                 
-                            print(f"{len(keys) + 1}: Delete this preset") # Print the option to delete the preset    
+                            print(f"{len(keys) + 1}: Delete this preset") # Print the option to delete the preset
+                            print(f"{len(keys) + 2}: Back/Cancel")
                             option = get_int_input("Option: ")
 
-                            if option == len(keys) + 1:
+                            if option == del_option:
                                 confirm = str(input(f"{BOLD}Are you sure you want to delete this preset? (y/n): {RESET}").lower())
                                 if confirm == "y":
                                     deleted = json_data[preset_key].pop(preset_selection - 1)
@@ -528,10 +520,22 @@ def presetRegConfig_handler():
                                     read_presets = get_read_presets(json_data)
                                     readMult_presets = get_read_mult_presets(json_data)
                                     write_presets = get_write_presets(json_data)
+                                    if preset_key == "read_presets":
+                                        presets_list = read_presets
+                                    elif preset_key == "read_multiple_presets":
+                                        presets_list = readMult_presets
+                                    elif preset_key == "write_presets":
+                                        presets_list = write_presets
+                                        
+                                    break
                                 else:
                                     print(f"{RED}Delete Cancelled.\n{RESET}")
                             
-                            elif option in range(1, len(keys) + 1):
+                            
+                            elif option == back_option:
+                                break
+                            
+                            elif option in range(1, len(keys)):
                                 print(f"Selection: {keys[option-1]}\n")
                                 
                                 key_to_edit = keys[option - 1]
@@ -544,19 +548,19 @@ def presetRegConfig_handler():
                                     print(f"{GREEN}Preset '{preset['name']}' updated.\n{RESET}")
                                     break
                                 
+                                # Restrict ability to modify the 'type'
                                 elif key_to_edit == 'type':
                                     print(f'{RED}"type" is currently not changeable. This will be a Future enhancement{RESET}\n')
                                     
-                                
-                        
+
                             elif option not in range(1, len(keys) + 1):
                                 print(f"{RED}Invalid Input.\n{RESET}")
                             
-                    if preset_selection == mm_selection:
+                    elif preset_selection == back_to_presets_option:
                         # Break out of preset Register handler back to Main Menu
                         break
                     
-                    elif preset_selection not in range(1, mm_selection + 1):
+                    elif preset_selection not in range(1, back_to_presets_option):
                         print(f"{RED}Invalid Input.\n{RESET}")
                         
             
@@ -569,7 +573,44 @@ def presetRegConfig_handler():
             print(f"{RED}Error: {e}{RESET}")
         
 
+def modify_mb_connection(baud_rate: int, device_id: int):
+    while True:
+            print_menu_options(
+                display_list=MB_CONNECTION_SETTINGS,
+                base=1,
+                label=f"\n{BOLD}{UNDERLINE}{GREEN}Modbus Connection Settings: - Baud: {baud_rate} - ID: {device_id}{RESET}",
+            )
+            try:
+                option = get_int_input("Option: ")
+                back_option = len(MB_CONNECTION_SETTINGS)
+                
+                if option not in range(1, back_option + 1):
+                    print(f"{RED}Invalid Input.\n{RESET}")
+                    continue
+                
+                
+                if option == 1:
+                    baud_rate = baud_input()
+                    
+                elif option == 2:
+                    device_id = device_id_input()
 
+                    
+                elif option == back_option:
+                    clear_console()
+                    return baud_rate, device_id
+                
+                
+                
+            except Exception as e:
+                print(f"{RED}{e}\n{RESET}")
 
-main()
+        
+
+            
+            
+    
+
+if __name__ == "__main__":
+    main()
         

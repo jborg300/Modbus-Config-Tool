@@ -1,7 +1,7 @@
 {
     "read_presets": [
         {
-            "name": "Read-Example Template R",
+            "name": "Read-Example Changed",
             "type": "read",
             "register": "70"
         },
@@ -9,11 +9,6 @@
             "name": "Read - Test 1",
             "type": "read",
             "register": "55"
-        },
-        {
-            "name": "Read - Test 2",
-            "type": "read",
-            "register": "93"
         },
         {
             "name": "Read - Test 3 - Sensor Data",
@@ -26,9 +21,19 @@
             "register": 202
         },
         {
-            "name": "Read Test 1",
+            "name": "Test Read 8",
             "type": "read",
             "register": 300
+        },
+        {
+            "name": "Test Read 4",
+            "type": "read",
+            "register": 300
+        },
+        {
+            "name": "Test Read - Bypass",
+            "type": "read",
+            "register": 33
         }
     ],
     "read_multiple_presets": [
@@ -51,10 +56,16 @@
             "read_count": "5"
         },
         {
-            "name": "Test Read Multiple 1",
+            "name": "Read PWM test 3",
+            "type": "read_multiple",
+            "start_register": 33,
+            "read_count": 44
+        },
+        {
+            "name": "Test RM - Add 1",
             "type": "read_multiple",
             "start_register": 300,
-            "read_count": 5
+            "read_count": 4
         }
     ],
     "write_presets": [
@@ -93,6 +104,24 @@
             "type": "write",
             "register": "200",
             "value": "4"
+        },
+        {
+            "name": "4",
+            "type": "write",
+            "register": 3,
+            "value": 33
+        },
+        {
+            "name": "test write 3",
+            "type": "write",
+            "register": 44,
+            "value": 9
+        },
+        {
+            "name": "Test Write 8",
+            "type": "write",
+            "register": 203,
+            "value": 88
         }
     ],
     "saved_devices": [
