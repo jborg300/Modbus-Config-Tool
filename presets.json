@@ -34,6 +34,11 @@
             "name": "Test Read - Bypass",
             "type": "read",
             "register": 33
+        },
+        {
+            "name": "New Read 1",
+            "type": "read",
+            "register": 500
         }
     ],
     "read_multiple_presets": [

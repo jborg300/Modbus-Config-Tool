@@ -3,6 +3,7 @@ import minimalmodbus
 import serial.tools.list_ports
 import json
 import os
+import sys
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
@@ -91,6 +92,7 @@ def handle_port_init(selected_port: list | None, bypass_com:bool, status_color, 
 
         else:
             logging.info("Exiting...")
+            sys.exit()
             return selected_port, bypass_com, status_color, baud_rate, device_ID
 
     if bypass_com and selected_port:
